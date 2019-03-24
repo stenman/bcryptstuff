@@ -1,59 +1,24 @@
-import org.springframework.security.crypto.bcrypt.BCrypt;
-
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.time.Duration;
-import java.time.Instant;
-
 public class Main {
+
     public static void main(String[] args) {
-        String password = "somepassword";
 
-        int cost = 12;
+        IPasswordHasher bcryptPasswordHasher = new BcryptPasswordHasher();
 
-        // CHOOSE SALT
-//        String salt = BCrypt.gensalt();
-//        String salt = BCrypt.gensalt(cost);
-        String salt = BCrypt.gensalt(cost, generateSecureRandom());
+        String candidate = "kalle";
 
-        // HASH
-        Instant start = Instant.now();
-        String hashedPassword = BCrypt.hashpw(password, salt);
-        Instant end = Instant.now();
-        System.out.println(hashedPassword);
-        System.out.println(String.format("Hashing took: %sms\n", Duration.between(start, end).toMillis()));
+        // CASE 1 - PLAINTEXT
+        String passFromDb = "kalle";
+        int hashType = 0;
+        System.out.println(HashType.values()[hashType].verifyStuff(candidate, passFromDb) && saveToDb(passFromDb, 1));
 
-        // TEST
-        start = Instant.now();
-        System.out.println(BCrypt.checkpw("wrongpass", hashedPassword));
-        end = Instant.now();
-        System.out.println(String.format("Checking took: %sms\n", Duration.between(start, end).toMillis()));
-        start = Instant.now();
-        System.out.println(BCrypt.checkpw("somepassword", hashedPassword));
-        end = Instant.now();
-        System.out.println(String.format("Checking took: %sms\n", Duration.between(start, end).toMillis()));
-
+        // CASE 2 - HASHED
+        passFromDb = "$2a$12$jLXVS6NTkebmF2P5XNA9O.r8aZQlIfQo64bJNihP2kqb3X3pHKi3.";
+        hashType = 1;
+        System.out.println(HashType.values()[hashType].verifyStuff(candidate, passFromDb) && saveToDb(passFromDb, 1));
     }
 
-    private static SecureRandom generateSecureRandom() {
-        SecureRandom secureRandom = null;
-        try {
-            // Create a secure random number generator using the SHA1PRNG algorithm
-            SecureRandom secureRandomGenerator = SecureRandom.getInstanceStrong();
-
-            // Get 128 random bytes
-            byte[] randomBytes = new byte[128];
-            secureRandomGenerator.nextBytes(randomBytes);
-
-            // Create two secure number generators with the same seed
-            int seedByteCount = 5;
-            byte[] seed = secureRandomGenerator.generateSeed(seedByteCount);
-
-            secureRandom = SecureRandom.getInstanceStrong();
-            secureRandom.setSeed(seed);
-
-        } catch (NoSuchAlgorithmException e) {
-        }
-        return secureRandom;
+    private static boolean saveToDb(String password, int hashType) {
+        System.out.println(String.format("Saving to DB: password=%s, hashType=%d", password, hashType));
+        return true;
     }
 }
